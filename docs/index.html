@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Refresh Opportunity Scoring for Search Content Performance</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #222;
+}
+h1 { line-height: 1.2; }
+h2 {
+    margin-top: 35px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 6px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+th, td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: left;
+}
+th { background: #f3f3f3; }
+code {
+    background: #f4f4f4;
+    padding: 2px 5px;
+}
+.note {
+    background: #f7f7f7;
+    padding: 15px;
+    border-left: 4px solid #888;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Refresh Opportunity Scoring for Search Content Performance</h1>
+
+<p><strong>FlyRank ML Internship Capstone</strong></p>
+
+<h2>1. Abstract</h2>
+
+<p>
+Can recent search-performance signals identify content experiencing meaningful traffic decline and help prioritize content for review or refresh? The analysis defines decline using a 20% or greater reduction in impressions between consecutive 30-day periods and evaluates a 200-tree Random Forest using search-performance features. On a random row split, the model achieved 65.6% accuracy compared with a 63.3% majority-class baseline, with a declining-class F1 score of 0.756. On an unseen-client split, accuracy was 61.1% versus a 67.7% baseline, while adding kept impressions increased accuracy to 66.3% and declining-class F1 to 0.745. These results support using the analysis as a review-prioritization aid, but they do not establish strong unseen-client generalization or any causal effect of content refreshes.
+</p>
+
+<h2>2. Question</h2>
+
+<p>
+Can recent search-performance signals identify content experiencing meaningful traffic decline and help prioritize content for review or refresh?
+</p>
+
+<h2>3. Data</h2>
+
+<p>
+This project uses the FlyRank ML Internship search-intelligence warehouse, accessed through the gated Hugging Face release. The analysis aggregates daily search-performance data into content-level 30-day windows. The final model and ranking dataset contains 111,247 content items with sufficient history, using a minimum of 100 impressions in the previous 30-day period.
+</p>
+
+<p>
+The main signals include previous-period impressions, visible-query activity, rare-query share, anonymous-query share, top-query share, and kept impressions. A 90-day feature-engineering exercise was also tested as a robustness check, but the reported model comparison uses the final 30-day feature table.
+</p>
+
+<div class="note">
+Only aggregate results are presented in this public report. Client names, domains, private queries, URLs, credentials, and raw client-level exports are excluded.
+</div>
+
+<h2>4. Methodology</h2>
+
+<p>
+A content item is labelled as declining when impressions in the most recent 30-day period are less than 80% of impressions in the preceding 30-day period. The main model uses previous-period impressions, visible-query activity, rare-query share, anonymous-query share, and top-query share as features.
+</p>
+
+<p>
+A second model adds kept impressions to test whether this signal improves performance on unseen clients. A 200-tree Random Forest classifier was evaluated using both a stratified random row split and a client-held-out split. Majority-class accuracy was used as the baseline.
+</p>
+
+<p>
+For prioritization, an opportunity score combines observed traffic decline with normalized kept impressions. Rule-based action categories are then used for investigation, refresh, monitoring, or maintenance. These scores and actions are operational prioritization heuristics rather than causal claims.
+</p>
+
+<h2>5. Results</h2>
+
+<table>
+<thead>
+<tr>
+<th>Validation</th>
+<th>Accuracy</th>
+<th>Declining-class F1</th>
+<th>Baseline Accuracy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Random row split</td>
+<td>65.6%</td>
+<td>0.756</td>
+<td>63.3%</td>
+</tr>
+<tr>
+<td>Client-held-out split</td>
+<td>61.1%</td>
+<td>0.704</td>
+<td>67.7%</td>
+</tr>
+<tr>
+<td>Client-held-out + kept impressions</td>
+<td>66.3%</td>
+<td>0.745</td>
+<td>67.7%</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+The random row split achieved 65.6% accuracy compared with a 63.3% majority-class baseline. On the stricter client-held-out split, accuracy decreased to 61.1% compared with a 67.7% baseline. Adding kept impressions improved the client-held-out result to 66.3% accuracy and 0.745 declining-class F1, although accuracy remained below the majority baseline.
+</p>
+
+<p>
+The resulting rule-based prioritization categories contain 42,756 items for review or refresh, 39,700 for maintain/monitor, 27,631 for monitoring declining performance, and 1,160 for investigating traffic loss.
+</p>
+
+<h2>6. Limitations</h2>
+
+<ul>
+<li>The client-held-out evaluation does not outperform the majority-class baseline on accuracy, so generalization to unseen clients is not established.</li>
+<li>Adding kept impressions improved the declining-class F1 score and accuracy relative to the basic client-held-out model, but accuracy remained below the baseline.</li>
+<li>The opportunity score is a heuristic and can strongly prioritize content with zero recent impressions, requiring human review before action.</li>
+<li>The action categories are operational rules rather than causal recommendations.</li>
+<li>The analysis does not establish that observed declines were caused by search-engine algorithm changes or that refreshing content would cause traffic to recover.</li>
+<li>The anonymized dataset limits the contextual information available for diagnosing individual content items.</li>
+</ul>
+
+<h2>7. Ranked Recommendations</h2>
+
+<ol>
+<li><strong>Investigate traffic loss:</strong> prioritize content with zero impressions in the most recent 30-day period.</li>
+<li><strong>Review or refresh content:</strong> prioritize content with an observed impression decline of 50% or more.</li>
+<li><strong>Monitor declining performance:</strong> track content with an impression decline of 20% to 50%.</li>
+<li><strong>Maintain / monitor:</strong> continue monitoring content that does not meet the decline thresholds.</li>
+</ol>
+
+<p>
+This ordering is an operational workflow for reviewing the dataset, not a model-proven ranking of business value. Individual items should be reviewed using additional context before any content changes are made.
+</p>
+
+<h2>8. Artifacts & Reproducibility</h2>
+
+<ul>
+<li><code>work/notebooks/capstone.ipynb</code> — final capstone report.</li>
+<li><code>work/notebooks/</code> — weekly assignment notebooks and the full-release analysis notebook.</li>
+<li><code>submission/paper_url.txt</code> — deployed paper URL.</li>
+<li><code>README.md</code> — project overview.</li>
+</ul>
+
+<p>
+The analysis was developed in Python using DuckDB and scikit-learn, with the FlyRank warehouse queried through the gated Hugging Face release. The Hugging Face access token was stored as a private Colab secret and was not included in the repository. The feature, validation, model, and prioritization steps are documented in the project notebooks. Row-level client or content identifiers should not be exported or published as part of the public report.
+</p>
+
+<h2>9. Acknowledgments & Data Credit</h2>
+
+<p>
+Built on the FlyRank ML Internship dataset.
+</p>
+
+<p>
+<a href="https://flyrank.ai" target="_blank">FlyRank</a>
+</p>
+
+</body>
+</html>
